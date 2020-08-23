@@ -8,22 +8,26 @@ const rl = readline.default.createInterface({
 });
 
 const prompt = async () => {
-    const enteredAnswer = await rl.questionAsync("Type in a number between 1-83: ");
-    try {
-        if (!+enteredAnswer) {
-            throw new Error("* Type in a valid number!");
-        } else if (enteredAnswer < 1 || enteredAnswer > 83) {
-            throw new Error("* Number not within the specified range! Try again.");
-        }
-        return enteredAnswer;
-    } catch(e) {
-        console.error(e.message);
-        await prompt();
+    const input = await rl.questionAsync("Type in a number between 1-83: ");
+    return await checkIfValidInput(input);
+};
+
+const checkIfValidInput = async enteredAnswer => {
+  try {
+    if (!+enteredAnswer) {
+      throw new TypeError("* Type in a valid number!");
+    } else if (enteredAnswer < 1 || enteredAnswer > 83) {
+      throw new Error("* Number not within the specified range! Try again.");
     }
+    return enteredAnswer;
+  } catch (e) {
+    console.error(e.message);
+    return await prompt();
+  }
 };
 
 const fetchPerson = async id => {
-    let fetchedData = await fetch(`https://swapi.dev/api/people/${id}`)
+    let fetchedData = await fetch(`https://swapi.dev/api/people/${id}`);
     try {
         if (fetchedData.status === 404) {
             throw new Error("* The person not found :( Try again!");
@@ -31,8 +35,7 @@ const fetchPerson = async id => {
         return await fetchedData.json();
     } catch(e) {
         console.error(e.message);
-        let enteredAnswer = await prompt();
-        return await fetchPerson(enteredAnswer);
+        await prompt();
     }
 };
 
@@ -50,19 +53,22 @@ const writeToFile = person => {
     return fs.writeFile(
             `./people/${createFileName(person)}.txt`,
             stringifyForWriteFile(person),
-            "utf8");
-            
+            "utf8"); 
 };
 
 (async () => {
-    const typedAnswer = await prompt();
-    const person = await fetchPerson(typedAnswer);
+    let enteredAnswer = await prompt();
+    const person = await fetchPerson(enteredAnswer);
 
     writeToFile(person)
         .catch((e) => {
         fs.mkdir("./people/");
         })
-        .then(res => writeToFile(person))
+        .then(() => writeToFile(person));
 
     rl.close();
 })();
+
+module.exports = {
+  isInputValid: checkIfValidInput
+};
