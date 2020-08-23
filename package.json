@@ -11,5 +11,9 @@
   "dependencies": {
     "node-fetch": "^2.6.0",
     "readline-promise": "^1.0.4"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.1.1"
   }
 }
