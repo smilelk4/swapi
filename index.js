@@ -23,12 +23,12 @@ const prompt = async () => {
 };
 
 const fetchPerson = async id => {
-    const fetchedData = await fetch(`https://swapi.dev/api/people/${id}`)
+    let fetchedData = await fetch(`https://swapi.dev/api/people/${id}`)
     try {
         if (fetchedData.status === 404) {
             throw new Error("* The person not found :( Try again!");
         }
-        return fetchedData.json();
+        return await fetchedData.json();
     } catch(e) {
         console.error(e.message);
         let enteredAnswer = await prompt();
@@ -46,11 +46,23 @@ const stringifyForWriteFile = person => {
     return serialized.split(",").join("\n");
 };
 
+const writeToFile = person => {
+    return fs.writeFile(
+            `./people/${createFileName(person)}.txt`,
+            stringifyForWriteFile(person),
+            "utf8");
+            
+};
 
 (async () => {
     const typedAnswer = await prompt();
     const person = await fetchPerson(typedAnswer);
-    fs.writeFile(`./node-fetch/${createFileName(person)}.txt`, stringifyForWriteFile(person), "utf8");
-    rl.close();
 
+    writeToFile(person)
+        .catch((e) => {
+        fs.mkdir("./people/");
+        })
+        .then(res => writeToFile(person))
+
+    rl.close();
 })();
